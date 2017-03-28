@@ -39,10 +39,8 @@
 
 .set-page {
   .BannerSet {
-    margin-left: 5.0em;
     .CardTitle {
         &__title {
-          font-size: 60px;
           font-weight: 900;
           font-family: $title-font;
         }
@@ -76,7 +74,7 @@
     &__title {
       font-size: 51px;
       font-weight: 900;
-      font-family: $title-font;
+      font-family: $display-font;
       margin: 30px 0;
     }
   }
@@ -165,7 +163,7 @@
     .BannerSet .CardTitle__title,
     .BannerSearch__title,
     .ContentGroupContentGroup__title {
-      font-family: $title-font-composite;
+      font-family: $display-font-composite;
       font-size: 30px;
     }
 

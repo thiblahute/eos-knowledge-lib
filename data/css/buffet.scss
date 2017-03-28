@@ -25,6 +25,8 @@ $support-font: Lato !default;
 $logo-font: Lato !default;
 
 $title-alt-font: 'Lato Thin' !default;
+$context-alt-font: 'Lato Thin' !default;
+$display-alt-font: 'Lato Thin' !default;
 
 @import "base";
 
@@ -311,7 +313,7 @@ $title-alt-font: 'Lato Thin' !default;
 
         .Card {
             &__title {
-                font-family: $title-alt-font;
+                font-family: $display-alt-font;
                 color: $accent-light-color;
             }
 
@@ -334,7 +336,7 @@ $title-alt-font: 'Lato Thin' !default;
     }
 
     &__homeButton {
-        font-family: $title-alt-font;
+        font-family: $display-alt-font;
         color: $accent-light-color;
         &:hover {
             color: $accent-dark-color;
@@ -343,7 +345,7 @@ $title-alt-font: 'Lato Thin' !default;
 }
 
 .BannerContext {
-    font-family: $title-alt-font;
+    font-family: $display-alt-font;
     color: $banner-label-color;
 }
 
@@ -361,7 +363,7 @@ $title-alt-font: 'Lato Thin' !default;
     .LayoutSideMenu__homeButton,
     .LayoutSideMenu__menu .Card__title,
     .BannerContext {
-        font-family: $title-font;
+        font-family: $display-font;
     }
 }
 
