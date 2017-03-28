@@ -67,6 +67,11 @@
     }
 }
 
+.Card__title {
+    font-family: $title-font;
+    color: $primary-medium-color;
+}
+
 .Card__synopsis {
     font-family: $body-font;
     color: $black-60-color;

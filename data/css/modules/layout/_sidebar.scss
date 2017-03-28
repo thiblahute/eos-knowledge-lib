@@ -1,5 +1,26 @@
 .LayoutSidebar {
+    .content {
+        .BannerSet .CardTitle__title,
+        .BannerSearch {
+            font-size: 72px;
+            color: white;
+            padding: 1.0em 0em 1.0em 1.25em;
+        }
+    }
+
     .sidebar {
+        background-color: transparentize($primary-dark-color,  1 - 0.90);
+        box-shadow: 0px 0px 10px 0px transparentize(black, 1 - 0.60);
+
+        scrollbar {
+            background-color: transparentize(black, 1 - 0.20);
+
+            slider {
+                min-width: 10px;
+                background-color: transparentize(white, 1 - 0.40);
+            }
+        }
+
         .ArrangementList {
             margin: 0px;
         }
@@ -13,28 +34,28 @@
                 font-family: $display-font;
                 font-weight: 700;
                 font-size: 20px;
-                color: $primary-light-color;
+                color: $background-dark-color;
             }
 
             &:hover {
                 .Card__title {
-                    color: $primary-medium-color;
+                    color: $accent-light-color;
                 }
             }
 
             &:active {
-                background: transparentize(black, 1 - 0.7);
+                .Card__title {
+                    color: white;
+                }
+                background-color: transparentize(black, 1 - 0.5);
             }
 
             &.highlighted {
-                background: transparentize(black, 1 - 0.5);
+                background-color: transparentize(black, 1 - 0.5);
                 font-weight: 700;
 
                 .Card__title {
                     color: white;
-                    transition-property: color;
-                    transition-timing-function: ease;
-                    transition-duration: 0.5s;
                 }
 
                 &:hover {
@@ -42,16 +63,16 @@
                 }
 
                 &:active {
-                    background: transparentize(black, 1 - 1);
+                    background-color: transparentize(black, 1 - 1);
                     box-shadow: none;
                     transition: none;
                 }
             }
         }
-    }
 
-    & .content {
-        background-image: linear-gradient(-180deg, rgba(0,0,0,0.0) 65%, rgba(0,0,0,0.30) 85%, rgba(0,0,0,0.70) 100%);
+        .ContentGroupContentGroup {
+            background-color: transparent;
+        }
     }
 }
 
