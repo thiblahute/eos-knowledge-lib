@@ -36,7 +36,7 @@ defines:
         arrangement:
           shortdef: 'Arrangement.Overflow(orientation: horizontal)'
           slots:
-            card: *card
+            card: Card.Thumb
         selection:
           type: Selection.AllSets
     basement:
@@ -66,7 +66,10 @@ defines:
         content:
           type: ContentGroup.ContentGroup
           slots:
-            <<: *main-arrangement-slot
+            arrangement:
+              type: Arrangement.SquareGuys
+              slots:
+                card: Card.Text
             selection:
               type: Selection.ContentForSet
               id: set-articles
