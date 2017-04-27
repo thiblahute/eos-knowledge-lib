@@ -27,7 +27,7 @@ const TOP_MENU_HEIGHT = 50;
  */
 const TopMenu = new Module.Class({
     Name: 'Navigation.TopMenu',
-    Extends: Endless.CustomContainer,
+    Extends: Gtk.Box,
 
     Slots: {
         /**
@@ -43,20 +43,25 @@ const TopMenu = new Module.Class({
     },
 
     _init: function (props={}) {
-        this.hexpand = true;
+
+        props.hexpand = true;
+        props.orientation = Gtk.Orientation.HORIZONTAL;
+        props.spacing = props.spacing | 8;
+
         this.parent(props);
 
         this._banner = this.create_submodule('banner');
         this._menu = this.create_submodule('menu');
 
+        this._banner.hexpand = false;
+        this._banner.valign = Gtk.Align.CENTER;
+        this._menu.hexpand = true;
+        this._menu.halign = Gtk.Align.END;
+
         this.add(this._banner);
         this.add(this._menu);
 
         this.show_all();
-    },
-
-    vfunc_get_request_mode: function () {
-        return Gtk.SizeRequestMode.CONSTANT_SIZE;
     },
 
     vfunc_get_preferred_width: function () {
@@ -73,42 +78,14 @@ const TopMenu = new Module.Class({
     },
 
     vfunc_size_allocate: function (alloc) {
+        let [banner_min,] = this._banner.get_preferred_width();
+        let [menu_min,] = this._menu.get_preferred_width();
+
+        this._banner.visible = (alloc.width >= banner_min + menu_min);
+
         this.parent(alloc);
-
-        let [, banner_nat_width] = this._banner.get_preferred_width();
-        let [, menu_nat_width] = this._menu.get_preferred_width();
-        let [, banner_nat_height] = this._banner.get_preferred_height();
-        let [, menu_nat_height] = this._menu.get_preferred_height();
-
-        let show_banner = (alloc.width >= banner_nat_width + menu_nat_width);
-
-        let x = alloc.x;
-        if (show_banner) {
-            let banner_rect = new Gdk.Rectangle({
-                x: x,
-                y: alloc.y + _get_centered_coord(alloc.height, banner_nat_height),
-                width: banner_nat_width,
-                height: banner_nat_height,
-            });
-            this._banner.size_allocate(banner_rect);
-            x += alloc.width - menu_nat_width;
-        } else {
-            x += Math.max(0, (alloc.width - menu_nat_width) / 2);
-        }
-        this._banner.set_child_visible(show_banner);
-
-        let menu_rect = new Gdk.Rectangle({
-            x: x,
-            y: alloc.y + _get_centered_coord(alloc.height, menu_nat_height),
-            width: Math.min(alloc.width, menu_nat_width),
-            height: menu_nat_height,
-        });
-        this._menu.size_allocate(menu_rect);
 
         Utils.set_container_clip(this);
     },
 });
 
-function _get_centered_coord(total_height, module_height) {
-    return (total_height - module_height) / 2;
-}
