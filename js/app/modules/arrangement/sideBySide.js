@@ -3,40 +3,61 @@
 /* exported SideBySide */
 
 const Endless = imports.gi.Endless;
+const Gdk = imports.gi.Gdk;
 const Gtk = imports.gi.Gtk;
 
 const Arrangement = imports.app.interfaces.arrangement;
 const Knowledge = imports.app.knowledge;
 const Module = imports.app.interfaces.module;
+const Utils = imports.app.utils;
 
 const MENU_HEIGHT = 50;
-const _HorizontalSpacing = {
-    TINY: 15,
-    SMALL: 20,
-    LARGE: 40,
-    XLARGE: 50,
-};
+const SPACING_MIN = 15;
+const SPACING_MAX = 50;
 
 const _SideBySideLayout = new Knowledge.Class({
     Name: 'Arrangement.SideBySideLayout',
-    Extends: Endless.CustomContainer,
+    Extends: Gtk.Box,
 
     _init: function (props={}) {
         this.all_visible = true;
+        props.orientation = Gtk.Orientation.HORIZONTAL;
 
         this.parent(props);
-    },
 
-    // Removing a visible widget should recalculate the positions of all widgets
-    vfunc_remove: function (widget) {
-        let needs_resize = widget.get_child_visible();
-        this.parent(widget);
-        if (needs_resize)
-            this.queue_resize();
-    },
+        /* Button to trigger dropdown */
+        this._popover_button = new Gtk.Button({ label: " ⁝ " });
+        Utils.set_hand_cursor_on_widget(this._popover_button);
+        this.pack_end(this._popover_button, false, false, 0);
 
-    vfunc_get_request_mode: function () {
-        return Gtk.SizeRequestMode.CONSTANT_SIZE;
+        let label = this._popover_button.get_child();
+        label.valign = Gtk.Align.CENTER;
+
+        /* Used for dropdown menu if cards do not fix */
+        this._popover = new Gtk.Popover({
+            position: Gtk.PositionType.BOTTOM,
+            relative_to: label,
+        });
+        this._popover_button.connect("clicked", () => {
+            this._popover.popup();
+        });
+
+        /* Classes needed for cards to have the same style */
+        let context = this._popover.get_style_context();
+        context.add_class('ArrangementSideBySide__popover');
+        context.add_class('ArrangementSideBySide');
+        context.add_class('Arrangement');
+
+        /* Dropdown contents */
+        let scroll = new Gtk.ScrolledWindow ({
+            vscrollbar_policy: Gtk.PolicyType.NEVER,
+            propagate_natural_width: true,
+        });
+        this._popover_box = new Gtk.Box({ orientation: Gtk.Orientation.VERTICAL });
+        scroll.add(this._popover_box);
+        this._popover.add(scroll);
+        this._popover_box.show();
+        scroll.show();
     },
 
     vfunc_get_preferred_height: function () {
@@ -51,66 +72,73 @@ const _SideBySideLayout = new Knowledge.Class({
         if (all_cards.length === 0)
             return [0, 0];
 
-        let [min, nat] = all_cards[0].get_preferred_width();
+        let [, first_nat] = all_cards[0].get_preferred_width();
+        let [, button_nat] = this._popover_button.get_preferred_width();
 
-        nat += all_cards.slice(1).reduce((accum, card) => {
+        let min = first_nat + SPACING_MIN + button_nat;
+        let nat = 0;
+
+        all_cards.forEach ((card) => {
             let [, card_nat] = card.get_preferred_width();
-            return accum + card_nat;
-        }, 0);
+            nat += card_nat + SPACING_MAX;
+        });
 
-        nat += _HorizontalSpacing.XLARGE * (all_cards.length - 1);
-        return [min, nat];
+        return [min, nat - SPACING_MAX];
+    },
+
+    _ensure_card_parent: function (card, parent) {
+        let current_parent = card.get_parent();
+
+        if (current_parent != parent) {
+            current_parent.remove(card);
+            parent.add(card);
+            card.show();
+        }
     },
 
     vfunc_size_allocate: function (alloc) {
-        this.parent(alloc);
+        let all_cards = this.get_parent().get_cards();
 
         this.all_visible = true;
 
-        if (this.get_children().length === 0)
+        if (all_cards.length === 0)
             return;
 
-        let all_cards = this.get_parent().get_cards();
+        let [, button_nat] = this._popover_button.get_preferred_width();
+        let width = alloc.width;
+        let cards_width = 0;
+        let spacing = button_nat + SPACING_MIN;
 
-        let cards_width = all_cards.reduce((accum, card) => {
+        all_cards.forEach ((card) => {
             let [, card_nat] = card.get_preferred_width();
-            return accum + card_nat;
-        }, 0);
 
-        let leftover = (alloc.width - cards_width) / (all_cards.length - 1);
-        let spacing = this._get_horizontal_spacing(leftover);
-        let x = alloc.x;
-        let y = alloc.y;
+            cards_width += card_nat;
 
-        all_cards.forEach((card) => {
-            let [, card_nat] = card.get_preferred_width();
-            if (card_nat <= alloc.width) {
-                let offset = card_nat + spacing;
-                Arrangement.place_card(card, x, y, card_nat, MENU_HEIGHT);
-                alloc.width -= offset;
-                x += offset;
-            } else {
+            if (this.all_visible && width >= cards_width + spacing)
+                this._ensure_card_parent(card, this);
+            else  {
+                this._ensure_card_parent(card, this._popover_box);
                 this.all_visible = false;
-                card.set_child_visible(false);
             }
+
+            spacing += SPACING_MIN;
         });
+
+        /* Set proper spacing */
+        if (this.all_visible) {
+            let leftover = (width - cards_width) / (all_cards.length - 1);
+            this.spacing = Math.min(leftover, SPACING_MAX);
+            this._popover_button.hide();
+        }
+        else {
+            this.spacing = SPACING_MIN;
+            this._popover_button.show();
+        }
+
+        /* Do the actual allocation */
+        this.parent(alloc);
     },
 
-    _get_horizontal_spacing: function (width) {
-        let spacing;
-        if (width < _HorizontalSpacing.TINY) {
-            spacing = 0;
-        } else if (width < _HorizontalSpacing.SMALL) {
-            spacing = _HorizontalSpacing.TINY;
-        } else if (width < _HorizontalSpacing.LARGE) {
-            spacing = _HorizontalSpacing.SMALL;
-        } else if (width < _HorizontalSpacing.XLARGE) {
-            spacing = _HorizontalSpacing.LARGE;
-        } else {
-            spacing = _HorizontalSpacing.XLARGE;
-        }
-        return spacing;
-    },
 });
 
 /**

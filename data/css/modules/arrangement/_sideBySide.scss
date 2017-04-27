@@ -24,4 +24,11 @@
             }
         }
     }
+    &__popover {
+        background-color: $primary-medium-color;
+        color: $white-60-color;
+        padding: 1ex 1em;
+        border-radius: .5ex;
+        border: 1px solid white;
+    }
 }
